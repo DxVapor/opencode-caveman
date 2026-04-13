@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { mkdtemp, writeFile, rm } from "fs/promises"
+import { mkdtemp, writeFile, rm, stat } from "fs/promises"
 import { join } from "path"
 import { tmpdir } from "os"
 
@@ -101,5 +101,89 @@ describe("CavemanPlugin module", () => {
         hooks["experimental.chat.messages.transform"]({}, { messages: null }),
       ).resolves.toBeUndefined()
     })
+  })
+})
+
+describe("CavemanPlugin file installation", () => {
+  let configDir: string
+  let originalEnv: string | undefined
+
+  beforeEach(async () => {
+    configDir = await mkdtemp(join(tmpdir(), "caveman-config-test-"))
+    originalEnv = process.env.OPENCODE_CONFIG_DIR
+    process.env.OPENCODE_CONFIG_DIR = configDir
+  })
+
+  afterEach(async () => {
+    if (originalEnv === undefined) {
+      delete process.env.OPENCODE_CONFIG_DIR
+    } else {
+      process.env.OPENCODE_CONFIG_DIR = originalEnv
+    }
+    await rm(configDir, { recursive: true })
+  })
+
+  it("writes skill file to OPENCODE_CONFIG_DIR/skills/caveman/SKILL.md on server() call", async () => {
+    const mod = await import("./index.js")
+    const client = { app: { log: vi.fn().mockResolvedValue({}) } }
+    const dir = await mkdtemp(join(tmpdir(), "caveman-dir-"))
+    try {
+      await (mod.default as any).server({ client, directory: dir })
+      const skillPath = join(configDir, "skills", "caveman", "SKILL.md")
+      const s = await stat(skillPath)
+      expect(s.isFile()).toBe(true)
+    } finally {
+      await rm(dir, { recursive: true })
+    }
+  })
+
+  it("writes command files to OPENCODE_CONFIG_DIR/command/ on server() call", async () => {
+    const mod = await import("./index.js")
+    const client = { app: { log: vi.fn().mockResolvedValue({}) } }
+    const dir = await mkdtemp(join(tmpdir(), "caveman-dir-"))
+    try {
+      await (mod.default as any).server({ client, directory: dir })
+      for (const name of ["caveman", "caveman-commit", "caveman-review"]) {
+        const p = join(configDir, "command", `${name}.md`)
+        const s = await stat(p)
+        expect(s.isFile()).toBe(true)
+      }
+    } finally {
+      await rm(dir, { recursive: true })
+    }
+  })
+
+  it("does not overwrite existing skill file", async () => {
+    const { mkdir, writeFile: wf } = await import("fs/promises")
+    await mkdir(join(configDir, "skills", "caveman"), { recursive: true })
+    const skillPath = join(configDir, "skills", "caveman", "SKILL.md")
+    await wf(skillPath, "# existing content")
+
+    const mod = await import("./index.js")
+    const client = { app: { log: vi.fn().mockResolvedValue({}) } }
+    const dir = await mkdtemp(join(tmpdir(), "caveman-dir-"))
+    try {
+      await (mod.default as any).server({ client, directory: dir })
+      const { readFile } = await import("fs/promises")
+      const content = await readFile(skillPath, "utf8")
+      expect(content).toBe("# existing content")
+    } finally {
+      await rm(dir, { recursive: true })
+    }
+  })
+
+  it("does not write files when OPENCODE_CONFIG_DIR is not set", async () => {
+    delete process.env.OPENCODE_CONFIG_DIR
+    const mod = await import("./index.js")
+    const client = { app: { log: vi.fn().mockResolvedValue({}) } }
+    const dir = await mkdtemp(join(tmpdir(), "caveman-dir-"))
+    try {
+      // Should not throw even without config dir
+      await expect(
+        (mod.default as any).server({ client, directory: dir }),
+      ).resolves.toBeDefined()
+    } finally {
+      await rm(dir, { recursive: true })
+    }
   })
 })

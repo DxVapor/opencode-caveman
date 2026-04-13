@@ -1,6 +1,6 @@
 import { tool } from "@opencode-ai/plugin"
 import { buildCavemanRules } from "./compress.js"
-import { readdir, readFile } from "fs/promises"
+import { readdir, readFile, mkdir, writeFile, access } from "fs/promises"
 import { join, basename, extname } from "path"
 import { fileURLToPath } from "url"
 import { dirname } from "path"
@@ -29,7 +29,44 @@ async function loadCommandsFromDir(
   return result
 }
 
+async function fileExists(p: string): Promise<boolean> {
+  try {
+    await access(p)
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function installFilesToConfigDir(): Promise<void> {
+  const configDir = process.env.OPENCODE_CONFIG_DIR
+  if (!configDir) return
+
+  // Install skills/caveman/SKILL.md
+  const srcSkill = join(PKG_ROOT, "skills", "caveman", "SKILL.md")
+  const destSkillDir = join(configDir, "skills", "caveman")
+  const destSkill = join(destSkillDir, "SKILL.md")
+  if (!(await fileExists(destSkill))) {
+    await mkdir(destSkillDir, { recursive: true })
+    const content = await readFile(srcSkill, "utf8")
+    await writeFile(destSkill, content, "utf8")
+  }
+
+  // Install command/*.md files
+  const commandsDir = join(PKG_ROOT, "commands")
+  const destCommandDir = join(configDir, "command")
+  await mkdir(destCommandDir, { recursive: true })
+  const commands = await loadCommandsFromDir(commandsDir)
+  for (const [name, cmd] of Object.entries(commands)) {
+    const destFile = join(destCommandDir, `${name}.md`)
+    if (!(await fileExists(destFile))) {
+      await writeFile(destFile, cmd.template, "utf8")
+    }
+  }
+}
+
 const CavemanPlugin = async ({ client, directory }: any) => {
+  await installFilesToConfigDir()
   return {
     config: async (config: any) => {
       // Register skills directory
