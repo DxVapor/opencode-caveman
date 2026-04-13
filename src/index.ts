@@ -31,8 +31,8 @@ const CavemanPlugin = async ({ client, directory }: any) => {
         description:
           "Returns caveman compression rules prepended to your AGENTS.md. Inject the output as session instructions to activate terse mode.",
         args: {},
-        async execute(_args: any, context: any) {
-          return buildCavemanRules(context.directory)
+        async execute(_args: any, _context: any) {
+          return buildCavemanRules(directory)
         },
       }),
     },
