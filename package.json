@@ -1,6 +1,6 @@
 {
   "name": "opencode-caveman",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Caveman token-compression plugin for OpenCode",
   "type": "module",
   "main": "./dist/index.js",
@@ -11,7 +11,11 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist", "skills", "commands"],
+  "files": [
+    "dist",
+    "skills",
+    "commands"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
@@ -26,6 +30,11 @@
     "typescript": "^5.0.0",
     "vitest": "^4.1.4"
   },
-  "keywords": ["opencode", "plugin", "caveman", "token-compression"],
+  "keywords": [
+    "opencode",
+    "plugin",
+    "caveman",
+    "token-compression"
+  ],
   "license": "MIT"
 }
