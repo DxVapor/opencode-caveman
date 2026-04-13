@@ -13,7 +13,7 @@ Caveman is active from the next session. No config required.
 
 | Command | Description |
 |---------|-------------|
-| `/caveman [lite|full|ultra|wenyan]` | Set compression level |
+| `/caveman [lite\|full\|ultra\|wenyan-lite\|wenyan-full\|wenyan-ultra]` | Set compression level |
 | `/caveman-commit` | Terse commit message for staged changes |
 | `/caveman-review` | Terse code review of current diff |
 
@@ -30,7 +30,9 @@ Load caveman instructions on demand:
 | lite | No filler, full sentences |
 | **full** (default) | Fragments, no articles |
 | ultra | Abbreviations, arrows for causality |
+| wenyan-lite | Semi-classical Chinese register |
 | wenyan-full | Classical Chinese (文言文) |
+| wenyan-ultra | Extreme compression, classical feel |
 
 ## Uninstall
 
