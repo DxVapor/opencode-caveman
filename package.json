@@ -14,7 +14,8 @@
   "files": [
     "dist",
     "skills",
-    "commands"
+    "commands",
+    ".opencode"
   ],
   "scripts": {
     "build": "tsc",
