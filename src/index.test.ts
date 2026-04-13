@@ -1,7 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { mkdtemp, writeFile, rm } from "fs/promises"
+import { mkdtemp, writeFile, rm, mkdir } from "fs/promises"
 import { join } from "path"
 import { tmpdir } from "os"
+import { fileURLToPath } from "url"
+import { dirname } from "path"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 let dir: string
 
@@ -77,5 +82,61 @@ describe("CavemanPlugin", () => {
 
     expect((hooks as any).tool).toBeDefined()
     expect(typeof (hooks as any).tool["caveman-compress"]).toBe("object")
+  })
+
+  it("config hook registers skills directory path", async () => {
+    const client = {
+      session: { prompt: vi.fn() },
+      app: { log: vi.fn() },
+    }
+
+    const mod = await import("./index.js")
+    const hooks = await mod.default({ client, directory: dir } as any)
+
+    expect(typeof (hooks as any).config).toBe("function")
+
+    const config: any = {}
+    await (hooks as any).config(config)
+
+    expect(Array.isArray(config.skills?.paths)).toBe(true)
+    expect(config.skills.paths.length).toBeGreaterThan(0)
+    // Should point to the skills/ directory alongside src/
+    const registeredPath = config.skills.paths[0]
+    expect(registeredPath).toContain("skills")
+  })
+
+  it("config hook registers commands from commands/ directory", async () => {
+    const client = {
+      session: { prompt: vi.fn() },
+      app: { log: vi.fn() },
+    }
+
+    const mod = await import("./index.js")
+    const hooks = await mod.default({ client, directory: dir } as any)
+
+    const config: any = {}
+    await (hooks as any).config(config)
+
+    expect(config.command).toBeDefined()
+    expect(typeof config.command["caveman"]).toBe("object")
+    expect(typeof config.command["caveman"].template).toBe("string")
+    expect(config.command["caveman-commit"]).toBeDefined()
+    expect(config.command["caveman-review"]).toBeDefined()
+  })
+
+  it("config hook does not overwrite existing skills paths", async () => {
+    const client = {
+      session: { prompt: vi.fn() },
+      app: { log: vi.fn() },
+    }
+
+    const mod = await import("./index.js")
+    const hooks = await mod.default({ client, directory: dir } as any)
+
+    const config: any = { skills: { paths: ["/existing/path"] } }
+    await (hooks as any).config(config)
+
+    expect(config.skills.paths).toContain("/existing/path")
+    expect(config.skills.paths.length).toBeGreaterThan(1)
   })
 })
