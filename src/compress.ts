@@ -43,8 +43,8 @@ export async function buildCavemanRules(directory: string): Promise<string> {
     try {
       existing = await readFile(join(directory, filename), "utf-8")
       break
-    } catch {
-      // not found, try next
+    } catch (err: any) {
+      if (err.code !== "ENOENT") throw err
     }
   }
   if (!existing) return CAVEMAN_HEADER
