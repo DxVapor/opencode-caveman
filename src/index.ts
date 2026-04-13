@@ -9,7 +9,11 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const PKG_ROOT = join(__dirname, "..")
 
-async function loadCommandsFromDir(dir: string): Promise<Record<string, { template: string; description?: string }>> {
+const INJECTED_MARKER = "Respond terse like smart caveman"
+
+async function loadCommandsFromDir(
+  dir: string,
+): Promise<Record<string, { template: string; description?: string }>> {
   const result: Record<string, { template: string; description?: string }> = {}
   try {
     const files = await readdir(dir)
@@ -46,29 +50,34 @@ const CavemanPlugin = async ({ client, directory }: any) => {
       }
     },
 
-    "session.created": async (event: any) => {
+    "experimental.chat.messages.transform": async (_input: any, output: any) => {
       try {
-        const sessionId: string | undefined =
-          event?.id ?? event?.sessionID ?? event?.session?.id
-        if (!sessionId) return
+        if (!output.messages?.length) return
+        const firstUser = output.messages.find((m: any) => m.info?.role === "user")
+        if (!firstUser?.parts?.length) return
+        // Only inject once
+        if (
+          firstUser.parts.some(
+            (p: any) => p.type === "text" && p.text?.includes(INJECTED_MARKER),
+          )
+        )
+          return
         const rules = await buildCavemanRules(directory)
-        await client.session.prompt({
-          path: { id: sessionId },
-          body: {
-            noReply: true,
-            parts: [{ type: "text", text: rules }],
-          },
-        })
+        const ref = firstUser.parts[0]
+        firstUser.parts.unshift({ ...ref, type: "text", text: rules })
       } catch (err) {
-        await client.app.log({
-          body: {
-            service: "opencode-caveman",
-            level: "error",
-            message: String(err),
-          },
-        })
+        try {
+          await client.app.log({
+            body: {
+              service: "opencode-caveman",
+              level: "error",
+              message: String(err),
+            },
+          })
+        } catch {}
       }
     },
+
     tool: {
       "caveman-compress": tool({
         description:
@@ -82,4 +91,7 @@ const CavemanPlugin = async ({ client, directory }: any) => {
   }
 }
 
-export default CavemanPlugin
+export default {
+  id: "opencode-caveman",
+  server: CavemanPlugin,
+}
