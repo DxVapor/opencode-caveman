@@ -24,7 +24,7 @@
     "@opencode-ai/plugin": "latest",
     "@types/node": "latest",
     "typescript": "^5.0.0",
-    "vitest": "^2.0.0"
+    "vitest": "^4.1.4"
   },
   "keywords": ["opencode", "plugin", "caveman", "token-compression"],
   "license": "MIT"
