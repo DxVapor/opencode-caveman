@@ -40,6 +40,31 @@ Remove `opencode-caveman` from your `opencode.json` plugin list, then:
 
     npm uninstall opencode-caveman
 
+## Troubleshooting
+
+**Skills or commands not showing up?**
+
+OpenCode caches plugin packages. If you updated from an older version, the cache may still have the old copy. Clear it and restart:
+
+```sh
+rm -rf ~/.cache/opencode/packages/opencode-caveman@*
+```
+
+If the skill/command files were written by a previous broken version, remove them too so they get rewritten on next startup:
+
+```sh
+rm -f ~/.config/opencode/skills/caveman/SKILL.md
+rm -f ~/.config/opencode/command/caveman.md
+rm -f ~/.config/opencode/command/caveman-commit.md
+rm -f ~/.config/opencode/command/caveman-review.md
+```
+
+Then restart OpenCode.
+
+**Config dir in a non-default location?**
+
+If your OpenCode config is not at `~/.config/opencode`, set `OPENCODE_CONFIG_DIR` to the correct path before starting OpenCode. The plugin reads this env var to know where to install its files.
+
 ## Credits
 
 Compression rules from [juliusbrussee/caveman](https://github.com/JuliusBrussee/caveman).
