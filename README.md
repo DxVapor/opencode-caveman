@@ -1,11 +1,26 @@
 # opencode-caveman
 
-OpenCode plugin that activates [caveman](https://github.com/JuliusBrussee/caveman) token-compression automatically on every session. Terse responses. Full technical accuracy.
+![](https://img.shields.io/badge/Node.js-18%2B-brightgreen?style=flat-square) [![npm]](https://www.npmjs.com/package/opencode-caveman)
 
-## Install
+[npm]: https://img.shields.io/npm/v/opencode-caveman.svg?style=flat-square
 
-    opencode plugin opencode-caveman        # project-level
-    opencode plugin -g opencode-caveman     # global
+opencode-caveman is an [OpenCode](https://opencode.ai) plugin that activates [caveman](https://github.com/JuliusBrussee/caveman) token-compression automatically on every session. Terse responses. Full technical accuracy.
+
+## Get started
+
+1. Install opencode-caveman:
+
+    **Project-level:**
+    ```bash
+    opencode plugin opencode-caveman
+    ```
+
+    **Global:**
+    ```bash
+    opencode plugin -g opencode-caveman
+    ```
+
+2. Navigate to your project directory and run `opencode`.
 
 Caveman is active from the next session. No config required.
 
@@ -38,7 +53,13 @@ Load caveman instructions on demand:
 
 Remove `opencode-caveman` from your `opencode.json` plugin list, then:
 
-    npm uninstall opencode-caveman
+```bash
+npm uninstall opencode-caveman
+```
+
+## Reporting Bugs
+
+Use the `/bug` command to report issues directly within OpenCode, or file a [GitHub issue](https://github.com/DxVapor/opencode-caveman/issues).
 
 ## Troubleshooting
 
